@@ -13,10 +13,14 @@ class Socket
 private:
     int fd;
 public:
-    Socket();
+    Socket ();
+    Socket (int);
     ~Socket();
 
+    void setnonblocking();
+    int get_fd ();
     void bind (InetAddress *);
     void listen ();
     int accept (InetAddress *);
+    
 };
