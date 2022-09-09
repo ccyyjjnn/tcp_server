@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "InterAddress.h"
 
+class InetAddress;
 class Socket
 {
 private:

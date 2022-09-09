@@ -4,7 +4,6 @@ InetAddress::InetAddress (): addr_len (sizeof (addr))
 {
     memset (&addr, 0, sizeof (addr));
     addr_len = sizeof (addr);
-    printf("addr_len: %d",addr_len);
 }
 
 InetAddress::InetAddress (const char* ip, uint16_t port):addr_len (sizeof (addr))
