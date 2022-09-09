@@ -4,7 +4,7 @@
 
 void 
 if_error (bool value, 
-         const char* errmsg)
+          const char *errmsg)
 {
     if (value)
     {

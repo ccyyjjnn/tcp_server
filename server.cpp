@@ -3,8 +3,10 @@
 #include "util.h"
 #include "Epoll.h"
 #include "InterAddress.h"
+#include "FileDes.h"
 #include <cstring>
 #include <errno.h>
+
 
 #define READ_BUFF 1024
 
@@ -47,33 +49,35 @@ int
 main ()
 {
     Socket *ser_socket = new Socket ();
-    InetAddress *ser_addr = new InetAddress ("127.0.0.1", 5188);
+    InetAddress *ser_addr = new InetAddress ("127.0.0.1", 5555);
     int on = 1;
     int res = setsockopt(ser_socket->get_fd(), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
     ser_socket->bind (ser_addr);
     ser_socket->listen ();
     Epoll *ep = new Epoll ();
     ser_socket->setnonblocking ();
-    ep->add_fd (ser_socket->get_fd(), EPOLLIN|EPOLLET);
-    while (1)
+    FileDes *ser_filedes = new FileDes (ep, ser_socket->get_fd());
+    ser_filedes->set_listen_events ();
+    while (true)
     {
-        std::vector <epoll_event> ev = ep->wait_epoll(-1);
-        int ev_size = ev.size ();
-        printf ("ev_size:%d\n",ev_size);
+        std::vector <FileDes*> ev = ep->wait_epoll();
+        int ev_size = ev.size ();        
         for (int i = 0; i <ev_size; ++i)
         {
-            if (ev[i].data.fd == ser_socket->get_fd())
+            int active = ev[i]->get_fd ();
+            if (active == ser_socket->get_fd ())
             {
                 InetAddress *cli_add = new InetAddress ();
                 Socket *cli_sock = new Socket (ser_socket->accept (cli_add));
                 printf ("\n新连接，fd:%d, IP:%s, Port:%d",
                         cli_sock->get_fd(), inet_ntoa (cli_add->addr.sin_addr), ntohs (cli_add->addr.sin_port));
-                 cli_sock->setnonblocking();
-                ep->add_fd (cli_sock->get_fd(), EPOLLIN |EPOLLET);
+                cli_sock->setnonblocking();
+                FileDes *filedes = new FileDes(ep, cli_sock->get_fd ());
+                filedes->set_listen_events ();
             }
-            else if (ev[i].events && EPOLLIN)
+            else if (ev[i]->get_now_events()  & EPOLLIN)
             {
-                read_event (ev[i].data.fd);
+                read_event (ev[i]->get_fd());
             }
         }
         

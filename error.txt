@@ -1,0 +1,4 @@
+1. bind error: Address already in use
+在默认情况下，服务器端历经创建 socket、bind 和 listen 重启时，如果试图绑定到一个现有连接上的端口，bind 操作会失败，但是如果我们在创建 socket 和 bind 之间，使用上面的代码片段设置 SO_REUSEADDR 套接字选项，情况就会不同。
+int on = 1;
+setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
